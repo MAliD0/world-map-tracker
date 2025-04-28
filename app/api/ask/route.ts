@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     headers: {
       'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
       'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://world-map-tracker-vj1p-d9wh3nndp-malid0s-projects.vercel.app/',//
+      'HTTP-Referer': 'https://world-map-tracker-885k7j490-malid0s-projects.vercel.app',//
       'X-Title': 'world-map-tracker',
     },
     body: JSON.stringify({
