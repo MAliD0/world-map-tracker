@@ -1,103 +1,186 @@
-import Image from "next/image";
+// page.tsx
+'use client';
 
-export default function Home() {
+import { useEffect, useState, useRef } from 'react';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+import { auth } from '@/app/tools/firebase';
+import MapViewClientWrapper from '@/app/MapViewClientWrapper';
+import VisitedCountriesList from '@/app/VisitedCountriesList';
+import EditCountryForm from '@/app/EditCountryForm';
+import {
+  getVisitedCountries,
+  saveVisitedCountries,
+  saveMarkerForCountry,
+  MarkerData,
+} from '@/app/tools/firestoreService';
+import styles from '@/app/Styles/mainPage.module.css';
+import AskCountryAIForm from './AskCountryAIForm';
+
+export type CountryStatus = 'planned' | 'visited';
+
+export interface CountryData {
+  status: CountryStatus;
+  note?: string;
+  lastTimeVisited?: number;
+}
+
+export default function HomePage() {
+  const [user, setUser] = useState<any>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [geoJsonData, setGeoJsonData] = useState<any>(null);
+  const [countryData, setCountryData] = useState<{ [key: string]: CountryData }>({});
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const router = useRouter();
+  const isFirstRender = useRef(true);
+  const [markColor, setMarkColor] = useState<string>('#FF0000');
+  const [markers, setMarkers] = useState<MarkerData[]>([]);
+
+  // Подписка на изменения аутентификации
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (!currentUser) {
+        router.push('/auth');
+      } else {
+        setUser(currentUser);
+        setUserId(currentUser.uid);
+      }
+    });
+    return () => unsubscribe();
+  }, [router]);
+
+  // Загрузка GeoJSON и данных о посещённых странах
+  useEffect(() => {
+    if (userId) {
+      fetch('/countries.geo.json')
+        .then((res) => res.json())
+        .then((data) => {
+          console.log('GeoJSON data:', data);
+          setGeoJsonData(data);
+        })
+        .catch((err) => console.error('Ошибка загрузки GeoJSON:', err));
+
+      getVisitedCountries(userId)
+        .then((data) => {
+          console.log('Visited countries data:', data);
+          if (data) setCountryData(data);
+        })
+        .catch((err) => console.error('Ошибка загрузки данных стран:', err));
+    }
+  }, [userId]);
+
+  // Сохранение обновлённых данных о странах
+  useEffect(() => {
+    if (userId) {
+      if (isFirstRender.current) {
+        isFirstRender.current = false;
+        return;
+      }
+      console.log('Saving countryData: ', countryData);
+      saveVisitedCountries(userId, countryData).catch((err) =>
+        console.error('Ошибка сохранения данных стран:', err)
+      );
+    }
+  }, [countryData, userId]);
+
+
+  const handleCountryClick = (countryName: string) => {
+    setSelectedCountry(countryName);
+  };
+
+  const handleUpdateCountryData = (updatedData: CountryData) => {
+    if (selectedCountry) {
+      setCountryData((prev) => ({
+        ...prev,
+        [selectedCountry]: updatedData,
+      }));
+      setSelectedCountry(null);
+    }
+  };
+
+  const handleCancelEditing = () => {
+    setSelectedCountry(null);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push('/auth');
+    } catch (error) {
+      console.error('Ошибка выхода из аккаунта:', error);
+    }
+  };
+
+  // Функция для добавления (сохранения) нового маркера
+
+  const handleNewMarker = async (marker: MarkerData) => {
+    if (!userId) {
+      console.error('Пользователь не определён');
+      return;
+    }
+  
+    try {
+      // Для отладки можно временно отключить сохранение в базу:
+      // await saveMarkerForCountry(userId, selectedCountry || 'default', marker);
+      setMarkers((prev) => {
+        const updated = [...prev, marker];
+        console.log('[handleNewMarker] Обновленные маркеры:', updated);
+        return updated;
+      });
+    } catch (error) {
+      console.error('Ошибка при сохранении маркера:', error);
+    }
+  };
+  
+  
+  
+
+  if (!user) return null;
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div id={styles.mainContainer}>
+      <header id={styles.toolbar}>
+        <h1>World Map Tracker</h1>
+        <div className={styles.toolbarButtons}>
+          <button onClick={handleLogout}>Выйти</button>
+        </div>
+      </header>
+      <main className={styles.container}>
+        <div className={styles.mapContainer}>
+          {/* Передаём onNewMarker в MapView через обёртку */}
+          <MapViewClientWrapper
+            geoJsonData={geoJsonData}
+            countryData={countryData}
+            onCountryClick={handleCountryClick}
+            markColorPlanned={markColor}
+            markColorVisited={'#008000'}
+            markers={markers}
+            onNewMarker={handleNewMarker}
+          />
+        </div>
+        <div id={styles.leftBar}>
+          <aside id={styles.visitedListContainer}>
+            {selectedCountry ? (
+              <EditCountryForm
+                countryName={selectedCountry}
+                data={
+                  countryData[selectedCountry] ||
+                  { status: 'planned', note: '', lastTimeVisited: 0 }
+                }
+                onSave={handleUpdateCountryData}
+                onCancel={handleCancelEditing}
+              />
+            ) : (
+              <VisitedCountriesList countries={Object.keys(countryData)} />
+            )}
+          </aside>
+          {selectedCountry ? (
+            <AskCountryAIForm countryName={selectedCountry} />
+          ) : (
+            <div className={styles.div}></div>
+          )}
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }

@@ -1,0 +1,77 @@
+:root{
+  --primary: #272744; 
+  --text-base: #fbf5ef;
+  --button: #8b6d9c;
+  --button-hover: #725981;
+}
+
+/* Главный контейнер использует Grid и занимает всю высоту экрана */
+  #mainContainer {
+    display: grid;
+    grid-template-rows: auto 1fr; /* верхняя панель и основное содержимое */
+    height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  /* Toolbar остается на верхней строке */
+  #toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--primary);
+    color: var(--text-base);
+    padding: 16px;
+  }
+  
+  /* Стили для группы кнопок в toolbar */
+  .toolbarButtons {
+    display: flex;
+    gap: 8px;
+  }
+  
+  /* Основной контейнер делится на 2 колонки: 2/3 для карты и 1/3 для списка */
+  .container {
+    display: inline-grid;
+    grid-template-columns: 2fr 1fr;
+    overflow: hidden;
+  }
+  
+  /* Контейнер для карты */
+  #mapContainer {
+    position: relative;
+    /* width: fit-content; */
+  }
+  
+  /* Контейнер для списка посещённых стран */
+  #visitedListContainer {
+    background-color: var(--primary);
+    padding: 16px;
+    overflow-y: auto;
+  }
+
+  #leftBar{
+    display: grid;
+    grid-template-rows: 3fr 3fr;
+  }
+  .button{
+    background-color: var(--button);
+    color: var(--text-base);
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease-in-out;  
+  }
+
+  .div{
+    padding: 16px;
+    background-color: var(--primary);
+  }
+
+  .button:hover{
+    background-color: var(--button-hover);
+  }
+
+  .h2{
+    font-size: 2em;
+  }
