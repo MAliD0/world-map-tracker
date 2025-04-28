@@ -1,5 +1,5 @@
-// page.tsx
 'use client';
+
 import { useEffect, useState, useRef } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
@@ -12,7 +12,10 @@ import {
   saveVisitedCountries,
   addMarker,
   getAllMarkers,
+  deleteMarker,
+  updateMarker,
   MarkerData,
+  deleteCountry,
 } from '@/app/tools/firestoreService';
 import styles from '@/app/styles/mainPage.module.css';
 import AskCountryAIForm from './AskCountryAIForm';
@@ -31,12 +34,12 @@ export default function HomePage() {
   const [geoJsonData, setGeoJsonData] = useState<any>(null);
   const [countryData, setCountryData] = useState<{ [key: string]: CountryData }>({});
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [markers, setMarkers] = useState<MarkerData[]>([]);
+  const [canAddMarker, setCanAddMarker] = useState<boolean>(false);
+  const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
   const router = useRouter();
   const isFirstRender = useRef(true);
-  const [markColor, setMarkColor] = useState<string>('#FF0000');
-  const [markers, setMarkers] = useState<MarkerData[]>([]);
 
-  // Подписка на изменения аутентификации
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
@@ -49,58 +52,38 @@ export default function HomePage() {
     return () => unsubscribe();
   }, [router]);
 
-  // Загрузка GeoJSON и данных о посещённых странах
   useEffect(() => {
     if (userId) {
       fetch('/countries.geo.json')
         .then((res) => res.json())
         .then((data) => {
-          console.log('GeoJSON data:', data);
           setGeoJsonData(data);
         })
         .catch((err) => console.error('Ошибка загрузки GeoJSON:', err));
 
       getVisitedCountries(userId)
         .then((data) => {
-          console.log('Visited countries data:', data);
           if (data) setCountryData(data);
         })
-        .catch((err) => console.error('Ошибка загрузки данных стран:', err));
+        .catch((err) => console.error('Ошибка загрузки стран:', err));
+
+      getAllMarkers(userId)
+        .then((loadedMarkers) => {
+          setMarkers(loadedMarkers);
+        })
+        .catch((err) => console.error('Ошибка загрузки маркеров:', err));
     }
   }, [userId]);
 
   useEffect(() => {
-    const loadMarkers = async () => {
-      if (!userId) return;
-  
-      try {
-        const loadedMarkers = await getAllMarkers(userId);
-        console.log('[loadMarkers] Загруженные маркеры:', loadedMarkers);
-        setMarkers(loadedMarkers);
-      } catch (error) {
-        console.error('Ошибка загрузки маркеров:', error);
-      }
-    };
-  
-    if (userId) {
-      loadMarkers();
-    }
-  }, [userId]);
-  
-  // Сохранение обновлённых данных о странах
-  useEffect(() => {
-    if (userId) {
-      if (isFirstRender.current) {
-        isFirstRender.current = false;
-        return;
-      }
-      console.log('Saving countryData: ', countryData);
+    if (userId && !isFirstRender.current) {
       saveVisitedCountries(userId, countryData).catch((err) =>
-        console.error('Ошибка сохранения данных стран:', err)
+        console.error('Ошибка сохранения стран:', err)
       );
+    } else {
+      isFirstRender.current = false;
     }
   }, [countryData, userId]);
-
 
   const handleCountryClick = (countryName: string) => {
     setSelectedCountry(countryName);
@@ -129,22 +112,68 @@ export default function HomePage() {
     }
   };
 
-  // Функция для добавления (сохранения) нового маркера
-
   const handleNewMarker = async (marker: MarkerData) => {
-    if (!userId) {
-      console.error('Пользователь не определён');
-      return;
-    }
-  
+    if (!userId) return;
+
     try {
-      await addMarker(userId, marker); // ✅ Теперь сохраняем маркер правильно
+      await addMarker(userId, marker);
       setMarkers((prev) => [...prev, marker]);
+      setCanAddMarker(false);
     } catch (error) {
-      console.error('Ошибка при сохранении маркера:', error);
+      console.error('Ошибка добавления маркера:', error);
     }
   };
+
+  const handleMarkerClick = (marker: MarkerData) => {
+    setSelectedMarker(marker);
+  };
+
+  const handleDeleteSelectedMarker = async () => {
+    if (!userId || !selectedMarker) return;
+
+    try {
+      await deleteMarker(userId, selectedMarker);
+      setMarkers((prev) =>
+        prev.filter((m) => !(m.lat === selectedMarker.lat && m.lng === selectedMarker.lng))
+      );
+      setSelectedMarker(null);
+    } catch (error) {
+      console.error('Ошибка удаления маркера:', error);
+    }
+  };
+  const handleDeleteCountry = async () => {
+    if (!userId || !selectedCountry) return;
   
+    try {
+      await deleteCountry(userId, selectedCountry);  // Удаление страны из Firebase
+      setCountryData((prev) => {
+        const updatedData = { ...prev };
+        delete updatedData[selectedCountry];  // Удаление страны из локальных данных
+        return updatedData;
+      });
+      setSelectedCountry(null);  
+    } catch (error) {
+      console.error('Ошибка удаления страны:', error);
+    }
+  };
+  const handleUpdateMarkerText = async (newText: string) => {
+    if (!userId || !selectedMarker) return;
+
+    const updatedMarker = { ...selectedMarker, text: newText };
+
+    try {
+      await updateMarker(userId, selectedMarker, updatedMarker);
+      setMarkers((prev) =>
+        prev.map((m) =>
+          m.lat === selectedMarker.lat && m.lng === selectedMarker.lng ? updatedMarker : m
+        )
+      );
+      setSelectedMarker(updatedMarker);
+    } catch (error) {
+      console.error('Ошибка обновления маркера:', error);
+    }
+  };
+
   if (!user) return null;
 
   return (
@@ -152,20 +181,27 @@ export default function HomePage() {
       <header id={styles.toolbar}>
         <h1>World Map Tracker</h1>
         <div className={styles.toolbarButtons}>
-          <button onClick={handleLogout}>Выйти</button>
+          <button className={styles.button} onClick={() => setCanAddMarker((prev) => !prev)}>
+            {canAddMarker ? 'Закончить' : 'Добавить метку'}
+          </button>
+          <button className={styles.button} onClick={handleDeleteSelectedMarker} disabled={!selectedMarker}>
+            Удалить выбранную метку
+          </button>
+          <button className={styles.button} onClick={handleLogout}>Выйти</button>
         </div>
       </header>
       <main className={styles.container}>
         <div className={styles.mapContainer}>
-          {/* Передаём onNewMarker в MapView через обёртку */}
           <MapViewClientWrapper
             geoJsonData={geoJsonData}
             countryData={countryData}
             onCountryClick={handleCountryClick}
-            markColorPlanned={markColor}
-            markColorVisited={'#008000'}
             markers={markers}
             onNewMarker={handleNewMarker}
+            canAddMarker={canAddMarker}
+            onMarkerClick={handleMarkerClick}
+            onUpdateMarkerText={handleUpdateMarkerText}
+            selectedMarker={selectedMarker}
           />
         </div>
         <div id={styles.leftBar}>
@@ -173,12 +209,10 @@ export default function HomePage() {
             {selectedCountry ? (
               <EditCountryForm
                 countryName={selectedCountry}
-                data={
-                  countryData[selectedCountry] ||
-                  { status: 'planned', note: '', lastTimeVisited: 0 }
-                }
+                data={countryData[selectedCountry] || { status: 'planned', note: '', lastTimeVisited: 0 }}
                 onSave={handleUpdateCountryData}
                 onCancel={handleCancelEditing}
+                onDelete={handleDeleteCountry}
               />
             ) : (
               <VisitedCountriesList countries={Object.keys(countryData)} />

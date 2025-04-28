@@ -26,7 +26,7 @@ export default function AskCountryAIForm({ countryName }: AskCountryAIFormProps)
   
       if (!res.ok) {
         const errorText = await res.text();
-        console.error('Ошибка от сервера:', errorText);
+        console.error('Ошибка:', errorText);
         throw new Error(`Ошибка запроса: ${res.status}`);
       }
   
@@ -40,35 +40,37 @@ export default function AskCountryAIForm({ countryName }: AskCountryAIFormProps)
       setLoading(false);
     }
   };
-    
+
   return (
     <div className={styles.div}>
-        <div>
-            <h2 className="text-lg font-semibold mb-2">❓ Спросить о {countryName}</h2>
-            <input
-                type="text"
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Например: Что стоит посетить?"
-                className="border p-2 rounded w-full mb-2"
-            />
-            <button 
-                onClick={handleAsk}
-                disabled={loading || !question}
-                className={styles.button}
-            >
-                {loading ? 'Запрашиваем...' : 'Спросить у AI'}
-            </button>
+      <div>
+        <h2 className="text-lg font-semibold mb-2"> Спросить о {countryName}</h2>
+        <input
+          type="text"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          placeholder="Например: Что стоит посетить?"
+          className="border p-2 rounded w-full mb-2"
+        />
+        <button 
+          onClick={handleAsk}
+          disabled={loading || !question}
+          className={styles.button}
+        >
+          {loading ? 'Запрашиваем...' : 'Спросить у AI'}
+        </button>
+      </div>
 
-        </div>
-            <div className={styles.div}>
-            {answer && (
-                <div className={styles.div}>
-                <h3 className="font-semibold">Ответ AI:</h3>
-                <p>{answer}</p>
-                </div>
-            )}
-        </div>
+      <div className={styles.div}>
+        {answer && (
+          <div className={styles.div}>
+            <h3 className="font-semibold">Ответ AI:</h3>
+            <div className="overflow-auto max-h-60 p-2 border rounded">
+              <p>{answer}</p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

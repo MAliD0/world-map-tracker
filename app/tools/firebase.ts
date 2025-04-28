@@ -3,12 +3,11 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth, signInAnonymously } from "firebase/auth";
 
-// Вставьте сюда вашу конфигурацию из Firebase Console
+//пожалуйста не используйте его(я забыл убрать вовремя)...
 const firebaseConfig = {
   apiKey: "AIzaSyACSODn29dTKFhZdPcS64ksSQ3splmuxCU",
   authDomain: "YOUR_AUTH_DOMAIN",
   projectId: "world-map-tracker",
-  // ... остальные настройки
 };
 
 const app = initializeApp(firebaseConfig);

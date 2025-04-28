@@ -1,80 +1,79 @@
-import { doc, getDoc, setDoc, collection, addDoc, getDocs } from 'firebase/firestore';
 import { db } from './firebase';
+import { doc, getDoc, setDoc, updateDoc, collection, getDocs, deleteDoc } from 'firebase/firestore';
 
-// Типы данных
-export type CountryStatus = 'planned' | 'visited';
-
-export interface CountryData {
-  status: CountryStatus;
-  note?: string;
-  value?: number;
-}
-
-export interface MarkerData {
+export type MarkerData = {
   lat: number;
   lng: number;
   text: string;
+};
+
+export async function getVisitedCountries(userId: string) {
+  const docRef = doc(db, 'users', userId);
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    return docSnap.data().visitedCountries || {};
+  } else {
+    return {};
+  }
 }
 
-// Получение списка стран пользователя
-export async function getVisitedCountries(userId: string): Promise<{ [key: string]: CountryData } | null> {
-  console.log('Current userId:', userId);
-  if (userId) {
-    try {
-      const userDocRef = doc(db, 'users', userId);
-      const docSnap = await getDoc(userDocRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data.visitedCountries) {
-          console.log('Data retrieved: ', data.visitedCountries);
-          return data.visitedCountries;
-        }
-      } else {
-        console.log('No data found for user:', userId);
-      }
-    } catch (error) {
-      console.error('Error loading user data:', error);
+export async function saveVisitedCountries(userId: string, countryData: any) {
+  const docRef = doc(db, 'users', userId);
+  await setDoc(docRef, { visitedCountries: countryData }, { merge: true });
+}
+
+export async function addMarker(userId: string, marker: MarkerData) {
+  const markerRef = doc(collection(db, 'users', userId, 'markers'));
+  await setDoc(markerRef, marker);
+}
+
+export async function deleteMarker(userId: string, marker: MarkerData) {
+  const markersRef = collection(db, 'users', userId, 'markers');
+  const snapshot = await getDocs(markersRef);
+
+  snapshot.forEach(async (docSnap) => {
+    const data = docSnap.data();
+    if (data.lat === marker.lat && data.lng === marker.lng) {
+      await deleteDoc(docSnap.ref);
+    }
+  });
+}
+
+export async function getAllMarkers(userId: string): Promise<MarkerData[]> {
+  const markersRef = collection(db, 'users', userId, 'markers');
+  const snapshot = await getDocs(markersRef);
+  const markers: MarkerData[] = [];
+
+  snapshot.forEach((docSnap) => {
+    markers.push(docSnap.data() as MarkerData);
+  });
+
+  return markers;
+}
+
+export async function updateMarker(userId: string, oldMarker: MarkerData, updatedMarker: MarkerData) {
+  const markersRef = collection(db, 'users', userId, 'markers');
+  const snapshot = await getDocs(markersRef);
+
+  snapshot.forEach(async (docSnap) => {
+    const data = docSnap.data();
+    if (data.lat === oldMarker.lat && data.lng === oldMarker.lng) {
+      await updateDoc(docSnap.ref, updatedMarker);
+    }
+  });
+}
+
+// Функция для удаления страны из данных пользователя
+export async function deleteCountry(userId: string, countryName: string) {
+  const docRef = doc(db, 'users', userId);
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    const data = docSnap.data().visitedCountries;
+    if (data && data[countryName]) {
+      delete data[countryName];  // Удаляем страну из данных
+      await setDoc(docRef, { visitedCountries: data }, { merge: true });
     }
   }
-  return null;
-}
-
-// Сохранение списка стран
-export async function saveVisitedCountries(
-  userId: string,
-  countries: { [key: string]: CountryData }
-): Promise<void> {
-  const userDocRef = doc(db, 'users', userId);
-  await setDoc(userDocRef, { visitedCountries: countries }, { merge: true });
-  console.log('✅ Saved to Firebase:', countries);
-}
-// Сохранение маркера в коллекцию "markers" пользователя
-export async function addMarker(userId: string, marker: MarkerData): Promise<void> {
-  try {
-    const markerCollectionRef = collection(db, 'users', userId, 'markers');
-    await addDoc(markerCollectionRef, marker);
-    console.log('✅ Marker added:', marker);
-  } catch (error) {
-    console.error('Error adding marker:', error);
-    throw error;
-  }
-}
-
-// Загрузка всех маркеров пользователя
-export async function getAllMarkers(userId: string): Promise<MarkerData[]> {
-  try {
-    const markerCollectionRef = collection(db, 'users', userId, 'markers');
-    const snapshot = await getDocs(markerCollectionRef);
-    return snapshot.docs.map(doc => doc.data() as MarkerData);
-  } catch (error) {
-    console.error('Error getting markers:', error);
-    return [];
-  }
-}
-
-
-// Создание страны, если она не существует
-async function createCountryIfNotExists(countryName: string) {
-  const countryDocRef = doc(db, "visitedCountries", countryName);
-  await setDoc(countryDocRef, { createdAt: new Date() }, { merge: true });
 }

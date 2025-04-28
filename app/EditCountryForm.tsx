@@ -1,4 +1,3 @@
-// EditCountryForm.tsx
 'use client';
 
 import { useState } from 'react';
@@ -11,16 +10,17 @@ interface EditCountryFormProps {
   data: CountryData;
   onSave: (data: CountryData) => void;
   onCancel: () => void;
+  onDelete: () => void; 
 }
 
-export default function EditCountryForm({ countryName, data, onSave, onCancel }: EditCountryFormProps) {
+export default function EditCountryForm({ countryName, data, onSave, onCancel, onDelete }: EditCountryFormProps) {
   const [status, setStatus] = useState<CountryStatus>(data.status);
   const [note, setNote] = useState<string>(data.note || '');
   const [date, setDate] = useState<string>(
     data.lastTimeVisited ? new Date(data.lastTimeVisited).toISOString().slice(0, 10) : ''
   );
+
   const handleSave = () => {
-    // Convert the string back to a Date object and then into a timestamp
     const lastTimeVisited = date ? new Date(date).getTime() : 0;
     onSave({ status, note, lastTimeVisited });
   };
@@ -52,6 +52,7 @@ export default function EditCountryForm({ countryName, data, onSave, onCancel }:
         />
       </div>
       <button className={styles.button} onClick={handleSave}>Сохранить</button>
+      <button className={styles.button} onClick={onDelete}>Удалить страну</button> 
       <button className={styles.button} onClick={onCancel}>Отмена</button>
     </div>
   );

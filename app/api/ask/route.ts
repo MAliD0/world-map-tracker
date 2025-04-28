@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
   });
 
   const data = await response.json();
+  console.log(`Bearer ${process.env.OPENROUTER_API_KEY}`);
   console.log('Ответ от OpenRouter:', JSON.stringify(data, null, 2));
 
   return NextResponse.json(data);

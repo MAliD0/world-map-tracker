@@ -1,4 +1,3 @@
-/* Главный контейнер использует Grid и занимает всю высоту экрана */
   #mainContainer {
     display: grid;
     grid-template-rows: auto 1fr; /* верхняя панель и основное содержимое */
@@ -44,7 +43,7 @@
 
   #leftBar{
     display: grid;
-    grid-template-rows: 3fr 3fr;
+    grid-template-rows: 2fr 3fr;
   }
   .button{
     background-color: var(--button);
