@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { CountryStatus, CountryData } from '@/app/page';
-import styles from '@/app/Styles/mainPage.module.css';
+import styles from '@/app/styles/mainPage.module.css';
 import SmartTextArea from './SmartTextArea';
 
 interface EditCountryFormProps {
