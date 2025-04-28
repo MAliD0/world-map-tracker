@@ -37,6 +37,7 @@ export default function HomePage() {
   const [markers, setMarkers] = useState<MarkerData[]>([]);
   const [canAddMarker, setCanAddMarker] = useState<boolean>(false);
   const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const router = useRouter();
   const isFirstRender = useRef(true);
 
@@ -60,13 +61,14 @@ export default function HomePage() {
           setGeoJsonData(data);
         })
         .catch((err) => console.error('Ошибка загрузки GeoJSON:', err));
-
+  
       getVisitedCountries(userId)
         .then((data) => {
           if (data) setCountryData(data);
+          setDataLoaded(true); // Помечаем, что загрузка стран завершена
         })
         .catch((err) => console.error('Ошибка загрузки стран:', err));
-
+  
       getAllMarkers(userId)
         .then((loadedMarkers) => {
           setMarkers(loadedMarkers);
@@ -76,20 +78,22 @@ export default function HomePage() {
   }, [userId]);
 
   useEffect(() => {
-    if (userId && !isFirstRender.current) {
+    if (userId && dataLoaded && !isFirstRender.current) {
+      console.log('Сохраняем страны:', countryData);
       saveVisitedCountries(userId, countryData).catch((err) =>
         console.error('Ошибка сохранения стран:', err)
       );
     } else {
       isFirstRender.current = false;
     }
-  }, [countryData, userId]);
-
+  }, [countryData, userId, dataLoaded]);
+  
   const handleCountryClick = (countryName: string) => {
     setSelectedCountry(countryName);
   };
 
   const handleUpdateCountryData = (updatedData: CountryData) => {
+    console.log(updatedData);
     if (selectedCountry) {
       setCountryData((prev) => ({
         ...prev,
