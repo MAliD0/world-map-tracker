@@ -1,4 +1,4 @@
-import styles from "@/app/Styles/mainPage.module.css"
+import styles from "@/app/styles/mainPage.module.css"
 
 interface VisitedCountriesListProps {
     countries: string[];
@@ -19,5 +19,5 @@ interface VisitedCountriesListProps {
         )}
       </div>
     );
-  }
+  } 
   
