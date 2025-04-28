@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   const { countryName, question } = await req.json();
+  const apiKey = process.env.OPENROUTER_API_KEY?.trim();
 
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
       'HTTP-Referer': 'https://world-map-tracker-885k7j490-malid0s-projects.vercel.app',//
       'X-Title': 'world-map-tracker',
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
   });
 
   const data = await response.json();
-  console.log(`Bearer ${process.env.OPENROUTER_API_KEY}`);
+  console.log(`Bearer ${apiKey}`);
   console.log('Ответ от OpenRouter:', JSON.stringify(data, null, 2));
 
   return NextResponse.json(data);
