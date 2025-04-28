@@ -11,10 +11,11 @@ import EditCountryForm from '@/app/EditCountryForm';
 import {
   getVisitedCountries,
   saveVisitedCountries,
-  saveMarkerForCountry,
+  addMarker,
+  getAllMarkers,
   MarkerData,
 } from '@/app/tools/firestoreService';
-import styles from '@/app/Styles/mainPage.module.css';
+import styles from '@/app/styles/mainPage.module.css';
 import AskCountryAIForm from './AskCountryAIForm';
 
 export type CountryStatus = 'planned' | 'visited';
@@ -69,6 +70,24 @@ export default function HomePage() {
     }
   }, [userId]);
 
+  useEffect(() => {
+    const loadMarkers = async () => {
+      if (!userId) return;
+  
+      try {
+        const loadedMarkers = await getAllMarkers(userId);
+        console.log('[loadMarkers] Загруженные маркеры:', loadedMarkers);
+        setMarkers(loadedMarkers);
+      } catch (error) {
+        console.error('Ошибка загрузки маркеров:', error);
+      }
+    };
+  
+    if (userId) {
+      loadMarkers();
+    }
+  }, [userId]);
+  
   // Сохранение обновлённых данных о странах
   useEffect(() => {
     if (userId) {
@@ -120,21 +139,13 @@ export default function HomePage() {
     }
   
     try {
-      // Для отладки можно временно отключить сохранение в базу:
-      // await saveMarkerForCountry(userId, selectedCountry || 'default', marker);
-      setMarkers((prev) => {
-        const updated = [...prev, marker];
-        console.log('[handleNewMarker] Обновленные маркеры:', updated);
-        return updated;
-      });
+      await addMarker(userId, marker); // ✅ Теперь сохраняем маркер правильно
+      setMarkers((prev) => [...prev, marker]);
     } catch (error) {
       console.error('Ошибка при сохранении маркера:', error);
     }
   };
   
-  
-  
-
   if (!user) return null;
 
   return (

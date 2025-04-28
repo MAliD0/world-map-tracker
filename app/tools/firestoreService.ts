@@ -48,27 +48,7 @@ export async function saveVisitedCountries(
   await setDoc(userDocRef, { visitedCountries: countries }, { merge: true });
   console.log('✅ Saved to Firebase:', countries);
 }
-
-// Добавление маркера для страны
-export async function saveMarkerForCountry(userId: string, countryName: string, marker: MarkerData) {
-  const countryDocRef = doc(db, 'users', userId, 'visitedCountries', countryName);
-  const markersCollectionRef = collection(countryDocRef, 'markers');
-  await addDoc(markersCollectionRef, marker);
-  console.log(`✅ Marker added for country: ${countryName}`, marker);
-}
-
-// Получение маркеров для страны
-export async function getMarkersForCountry(userId: string, countryName: string): Promise<MarkerData[]> {
-  const countryDocRef = doc(db, 'users', userId, 'visitedCountries', countryName);
-  const markersCollectionRef = collection(countryDocRef, 'markers');
-  console.log(`Fetching markers for country: ${countryName} at ${countryDocRef.path}`);
-  const snapshot = await getDocs(markersCollectionRef);
-  console.log(`Fetched ${snapshot.size} markers.`);
-
-  return snapshot.docs.map((doc) => doc.data() as MarkerData);
-}
-
-// Пример добавления маркера для пользователя
+// Сохранение маркера в коллекцию "markers" пользователя
 export async function addMarker(userId: string, marker: MarkerData): Promise<void> {
   try {
     const markerCollectionRef = collection(db, 'users', userId, 'markers');
@@ -76,8 +56,22 @@ export async function addMarker(userId: string, marker: MarkerData): Promise<voi
     console.log('✅ Marker added:', marker);
   } catch (error) {
     console.error('Error adding marker:', error);
+    throw error;
   }
 }
+
+// Загрузка всех маркеров пользователя
+export async function getAllMarkers(userId: string): Promise<MarkerData[]> {
+  try {
+    const markerCollectionRef = collection(db, 'users', userId, 'markers');
+    const snapshot = await getDocs(markerCollectionRef);
+    return snapshot.docs.map(doc => doc.data() as MarkerData);
+  } catch (error) {
+    console.error('Error getting markers:', error);
+    return [];
+  }
+}
+
 
 // Создание страны, если она не существует
 async function createCountryIfNotExists(countryName: string) {
