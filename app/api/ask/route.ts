@@ -4,6 +4,7 @@ export async function POST(req: NextRequest) {
   const { countryName, question } = await req.json();
 
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
@@ -21,5 +22,7 @@ export async function POST(req: NextRequest) {
   });
 
   const data = await response.json();
+  console.log('Ответ от OpenRouter:', JSON.stringify(data, null, 2));
+
   return NextResponse.json(data);
 }
