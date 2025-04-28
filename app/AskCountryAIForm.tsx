@@ -31,7 +31,7 @@ export default function AskCountryAIForm({ countryName }: AskCountryAIFormProps)
       }
   
       const data = await res.json();
-      const reply = data.choices?.[0]?.message?.content || 'Нет ответа от AI.';
+      const reply = data.answer || 'Нет ответа от AI.';
       setAnswer(reply);
     } catch (error) {
       console.error(error);
