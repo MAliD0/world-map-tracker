@@ -1,6 +1,5 @@
 // page.tsx
 'use client';
-
 import { useEffect, useState, useRef } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
