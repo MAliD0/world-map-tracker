@@ -9,6 +9,11 @@
 
   --background: #fbf5ef;
   --foreground: #272744;
+  
+  --primary: #272744; 
+  --text-base: #fbf5ef;
+  --button: #8b6d9c;
+  --button-hover: #725981;
 }
 
 @theme inline {
