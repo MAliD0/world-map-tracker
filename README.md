@@ -1,36 +1,26 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Данный проект называется World-map-tracker, данная работа закончена за 3 дня. Сайт хостится на платформе Vercel, использует ИИ mistral-7b-instruct и сохраняет данные через Firebase.
+Чтобы запустить данный сайт перейдите по ссылке: 
+Вам будет необходимо зарегистрироваться и сайт будет открыт перед вами. Для синхронизации данных необходимо зайти через почту и пароль(лучше сохранить)
+https://world-map-tracker-git-master-malid0s-projects.vercel.app/
 
-## Getting Started
+Основные функции:
+  1. Выделение стран
+    *Привязка данных к странам
+  2. Установка меток на любой точке на карте
+    *Можно писать заметки на метках
+  3. ИИ помощник(подождите ответа, долго отвечает)
 
-First, run the development server:
+Данное приложение был моим первым опытом в создании проекта для открытой публики и использованием ИИ. 
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Из-за коротких сроков вся работа имела свои шаги и цели, для этого была создана доска в Trello. И платформа была выбрана web из-за своего удобства и широкого использования, а дополнительные инструменты были Firebase, а также ИИ от openrouter(mistral-7b-instruct), из-за своей скорости и ценны(бесплатно)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Во время самой работы я не встречался с проблемами, главные препятствия начались во время деплоя и отрисовки карты, мне пришлось создать wrapper и сделать сайт по своей сути client-side and client authorative приложение(что я нахожу удобным и быстрым).
+Одной интересной проблемой для меня стало работа с useEffect() и багом из-за него, данные в датабазе заменялись на пустоту из-за того что данные не успевали синхронизироваться и пришлось имплементировать флаги. 
+Также благодаря своему прошлому опыту, данный род проектов для меня довольно прост из-за структуры программирования в game dev(component structure), которая позволяла мне быстро находить проблемы в коде.
+Код для визуала был написан с помощью Chat gpt а основные навыки я вспомнинал с курсом the-complete-web-development-bootcamp на Udemy.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Тестирование проходило первые 2 дня на локальном сервере и весь третий день был посвящен deploy, где я познакомился с рядом проблем. Таких как игнорирование гитхабом заглавных букв, неработающий ИИ ключ и необходимость в замене :root().
+Но все это окупилось и моя работа теперь доступна вам. 
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+ВАЖНОЕ ПРИМЕЧАНИЕ:
+Без проблем не обошлось, чтобы увидеть данные со страны вам необходимо выбрать страну нажать кнопку "отмена" и снова выбрать страну чтобы обновились данные на клиентском сайте.
