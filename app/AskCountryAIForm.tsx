@@ -18,21 +18,10 @@ export default function AskCountryAIForm({ countryName }: AskCountryAIFormProps)
     setAnswer('');
   
     try {
-      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const res = await fetch('/api/ask', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer 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`,          
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://world-map-tracker-vj1p-d9wh3nndp-malid0s-projects.vercel.app/', //мой деплой сайт
-          'X-Title': 'world-map-tracker',
-        },
-        body: JSON.stringify({
-          model: 'mistralai/mistral-7b-instruct', // бесплатная модель
-          messages: [
-            { role: 'system', content: 'You are a tourist guide. Give short answers in english, responce under 6 sentences and 100 words' },
-            { role: 'user', content: `Tell about a country ${countryName}. Question: ${question}` },
-          ],
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ countryName, question }),
       });
   
       if (!res.ok) {
@@ -51,7 +40,7 @@ export default function AskCountryAIForm({ countryName }: AskCountryAIFormProps)
       setLoading(false);
     }
   };
-  
+    
   return (
     <div className={styles.div}>
         <div>
