@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import styles from '@/app/Styles/mainPage.module.css';
+import styles from '@/app/styles/mainPage.module.css';
 
 interface AskCountryAIFormProps {
   countryName: string;
