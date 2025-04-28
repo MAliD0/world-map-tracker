@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import styles from '@/app/Styles/mainPage.module.css';
+import styles from '@/app/styles/mainPage.module.css';
 
 interface AskCountryAIFormProps {
   countryName: string;
@@ -23,7 +23,7 @@ export default function AskCountryAIForm({ countryName }: AskCountryAIFormProps)
         headers: {
           'Authorization': `Bearer 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`,          
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'http://localhost:3000', // ИЛИ твой деплой сайт
+          'HTTP-Referer': 'https://world-map-tracker-vj1p-d9wh3nndp-malid0s-projects.vercel.app/', //мой деплой сайт
           'X-Title': 'world-map-tracker',
         },
         body: JSON.stringify({
