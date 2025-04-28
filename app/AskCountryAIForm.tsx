@@ -30,9 +30,9 @@ export default function AskCountryAIForm({ countryName }: AskCountryAIFormProps)
         throw new Error(`Ошибка запроса: ${res.status}`);
       }
   
-      const data = await res.json();
-      const reply = data.answer || 'Нет ответа от AI.';
-      setAnswer(reply);
+    const data = await res.json();
+    const reply = data.choices?.[0]?.message?.content || 'Нет ответа от AI.';
+    setAnswer(reply);
     } catch (error) {
       console.error(error);
       setAnswer('Произошла ошибка при обращении к AI.');
